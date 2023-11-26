@@ -5,6 +5,7 @@ import (
 	"mu_previous_papers_be/model"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,6 +29,14 @@ func NewServer(store Store) *Server {
 }
 
 func (s *Server) Run() {
+	s.router.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	s.router.GET("/health", s.healthCheck())
 	s.router.GET("/papersData", s.getPaperTitles())
 	s.router.GET("/subjects", s.getSubjects())
