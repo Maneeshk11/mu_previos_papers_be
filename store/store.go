@@ -37,6 +37,29 @@ func (s *store) HealthCheck() error {
 	return nil
 }
 
+func (s *store) GetSubjects() []string {
+	var res []string
+	query := `select distinct subject_name from qpapers_info`
+	result := s.db.Raw(query).Scan(&res)
+	if result.Error != nil {
+		fmt.Println("Error querying the database:", result.Error)
+		return res
+	}
+
+	return res
+}
+
+func (s *store) GetSubjectCodes() []string {
+	var res []string
+	query := `select distinct subject_code from qpapers_info`
+	result := s.db.Raw(query).Scan(&res)
+	if result.Error != nil {
+		fmt.Println("Error querying the database:", result.Error)
+		return res
+	}
+	return res
+}
+
 func (s *store) GetTitles(subject, code, year string) []model.QpapersInfo {
 	var query string
 	var res []model.QpapersInfo
