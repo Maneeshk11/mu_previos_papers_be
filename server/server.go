@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"mu_previous_papers_be/model"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,7 @@ type Store interface {
 	GetTitles(subject, code, year string) []model.QpapersInfo
 	GetSubjects() []string
 	GetSubjectCodes() []string
+	PutInDB(model.QpapersInfo) string
 }
 
 type Server struct {
@@ -39,6 +42,7 @@ func (s *Server) Run() {
 	s.router.GET("/health", s.healthCheck())
 	s.router.GET("/papersData", s.getPaperTitles())
 	s.router.GET("/subjects", s.getSubjects())
+	s.router.POST("/addToDB", s.addToDB())
 	s.router.Run(":8080")
 }
 
@@ -66,5 +70,34 @@ func (s *Server) getPaperTitles() gin.HandlerFunc {
 		code := ctx.Query("code")
 		res := s.store.GetTitles(subject, code, year)
 		ctx.JSON(http.StatusOK, res)
+	}
+}
+
+func (s *Server) addToDB() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var obj model.QpapersInfo
+		obj.Subject_code = ctx.Query("code")
+		obj.Subject_name = ctx.Query("subject")
+		num, err := strconv.ParseInt(ctx.Query("semester"), 10, 64)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		obj.Semester = num
+		obj.Exam_type = ctx.Query("examType")
+		obj.Exam_occasion = ctx.Query("examOccasion")
+		num1, err := strconv.ParseInt(ctx.Query("year"), 10, 64)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		obj.Exam_year = num1
+		obj.Branch = ctx.Query("branch")
+		obj.File_path = ctx.Query("path")
+
+		res := s.store.PutInDB(obj)
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": res,
+		})
 	}
 }
