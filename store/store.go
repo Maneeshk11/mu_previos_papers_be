@@ -7,6 +7,7 @@ import (
 	"mu_previous_papers_be/server"
 	"sync"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -97,4 +98,31 @@ func (s *store) GetTitles(subject, code, year string) []model.QpapersInfo {
 	}
 
 	return res
+}
+
+func (s *store) PutInDB(obj model.QpapersInfo) string {
+	uuidObj, err := uuid.NewUUID()
+	if err != nil {
+		return "Failed to generate UUID"
+	}
+	uuidString := uuidObj.String()
+
+	query_1 := fmt.Sprintf(`insert into qpapers_info(id, subject_code, subject_name, semester, exam_type, exam_occasion, exam_year, branch) 
+	values ('%s', '%s', '%s', %d, '%s', '%s', %d, '%s')`, uuidString, obj.Subject_code, obj.Subject_name, obj.Semester, obj.Exam_type, obj.Exam_occasion, obj.Exam_year, obj.Branch)
+
+	query_2 := fmt.Sprintf(`insert into qpapers_loc(qpapers_id, file_path) values ('%s', '%s')`, uuidString, obj.File_path)
+
+	result1 := s.db.Exec(query_1)
+	if result1.Error != nil {
+		fmt.Println("Error querying the database:", result1.Error)
+		return "Failed to add to qpapers_info"
+	}
+
+	result2 := s.db.Exec(query_2)
+	if result2.Error != nil {
+		fmt.Println("Error querying the database:", result2.Error)
+		return "Failed to add to qpapers_loc"
+	}
+
+	return "Successfully added to db"
 }
