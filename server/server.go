@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"mu_previous_papers_be/model"
 	"net/http"
 
@@ -65,7 +64,6 @@ func (s *Server) getPaperTitles() gin.HandlerFunc {
 		year := ctx.Query("year")
 		subject := ctx.Query("subject")
 		code := ctx.Query("code")
-		fmt.Printf("values: %s %s %s\n", year, subject, code)
 		res := s.store.GetTitles(subject, code, year)
 		ctx.JSON(http.StatusOK, res)
 	}
